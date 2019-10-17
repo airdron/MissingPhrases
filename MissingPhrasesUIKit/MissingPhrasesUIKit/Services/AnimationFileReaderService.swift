@@ -17,18 +17,23 @@ class AnimationFileReaderService {
 
         DispatchQueue.global().async {
             do {
-                let files = try fileNames.map { fileName in
+                let files: [FigureFile] = try fileNames.map { fileName in
                     let fileURL = Bundle.main.url(forResource: fileName, withExtension: fileExtension)
                     let fileContent = try String(contentsOf: fileURL!, encoding: String.Encoding.utf8)
+                    return self.parseFile(fullFileName: fileName + "." + fileExtension, content: fileContent)
+                }
+                DispatchQueue.main.async {
+                    completion?(.success(files))
                 }
             } catch {
-                completion?(.failure(error))
+                DispatchQueue.main.async {
+                    completion?(.failure(error))
+                }
             }
-
         }
     }
 
-    private func parseFile(content: String) -> FigureFile {
+    private func parseFile(fullFileName: String, content: String) -> FigureFile {
         let splitedString = content.split(separator: "\n")
         var index: Int = 0
         let canvasSize = makeCanvasSize(from: splitedString[index])
@@ -58,15 +63,69 @@ class AnimationFileReaderService {
             }
             index += 1
         }
-        return FigureFile(canvasSize: canvasSize, rectangles: rectangles, circles: circles)
-    }
-
-    private func parseRectangleFigure(propertyStrings: [Substring], animationStrings: [String]) -> Figure.Rectangle {
-        fatalError()
+        return FigureFile(fullFileName: fullFileName, canvasSize: canvasSize, rectangles: rectangles, circles: circles)
     }
 
     private func parseCircleFigure(propertyStrings: [Substring], animationStrings: [String]) -> Figure.Circle {
-        fatalError()
+        let circle = Figure.Circle(centerX: CGFloat(Double(propertyStrings[1])!),
+                                   centerY: CGFloat(Double(propertyStrings[2])!),
+                                   radius: CGFloat(Double(propertyStrings[3])!),
+                                   color: ColorType(rawValue: String(propertyStrings[4]))!,
+                                   animations: makeAnimations(animationStrings))
+        return circle
+    }
+
+    private func parseRectangleFigure(propertyStrings: [Substring], animationStrings: [String]) -> Figure.Rectangle {
+
+        let rectangle = Figure.Rectangle(centerX: CGFloat(Double(propertyStrings[1])!),
+                                         centerY: CGFloat(Double(propertyStrings[2])!),
+                                         width: CGFloat(Double(propertyStrings[3])!),
+                                         height: CGFloat(Double(propertyStrings[4])!),
+                                         angle: CGFloat(Double(propertyStrings[5])!),
+                                         color: ColorType(rawValue: String(propertyStrings[6]))!,
+                                         animations: makeAnimations(animationStrings))
+        return rectangle
+    }
+
+    private func makeAnimations(_ animationStrings: [String]) -> Figure.Animations {
+        var moves: [Figure.Animations.Move] = []
+        var rotates: [Figure.Animations.Rotate] = []
+        var scales: [Figure.Animations.Scale] = []
+
+        animationStrings.forEach { string in
+            let splittedAnimationStrings = string.split(separator: " ").map(String.init)
+            switch AnimationType(rawValue: splittedAnimationStrings[0])! {
+            case .move:
+                guard let destX = Double(splittedAnimationStrings[1]),
+                    let destY = Double(splittedAnimationStrings[2]),
+                    let time = TimeInterval(splittedAnimationStrings[3]) else {
+                        return
+                }
+                let isCycle = splittedAnimationStrings.last == "cycle"
+                let move = Figure.Animations.Move(destX: CGFloat(destX),
+                                                  destY: CGFloat(destY),
+                                                  time: time,
+                                                  isCycle: isCycle)
+                moves.append(move)
+            case .rotate:
+                guard let angle = Double(splittedAnimationStrings[1]),
+                    let time = TimeInterval(splittedAnimationStrings[2]) else {
+                        return
+                }
+                let isCycle = splittedAnimationStrings.last == "cycle"
+                let rotate = Figure.Animations.Rotate(angle: CGFloat(angle), time: time, isCycle: isCycle)
+                rotates.append(rotate)
+            case .scale:
+                guard let destScale = Double(splittedAnimationStrings[1]),
+                    let time = TimeInterval(splittedAnimationStrings[2]) else {
+                        return
+                }
+                let isCycle = splittedAnimationStrings.last == "cycle"
+                let scale = Figure.Animations.Scale(destScale: CGFloat(destScale), time: time, isCycle: isCycle)
+                scales.append(scale)
+            }
+        }
+        return Figure.Animations(moves: moves, rotates: rotates, scales: scales)
     }
 
     private func makeCanvasSize(from string: Substring) -> CGSize {

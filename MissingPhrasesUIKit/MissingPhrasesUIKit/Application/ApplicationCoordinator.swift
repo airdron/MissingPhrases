@@ -17,8 +17,12 @@ class ApplicationCoordinator {
     }
 
     func start() {
-        let navigationController = UINavigationController()
+        showFileSelection(source: window)
+    }
 
+    func showFileSelection(source window: UIWindow) {
+        let viewController = FileSelectionModuleAssemble.make()
+        let navigationController = UINavigationController(rootViewController: viewController)
         window.rootViewController = navigationController
     }
 }

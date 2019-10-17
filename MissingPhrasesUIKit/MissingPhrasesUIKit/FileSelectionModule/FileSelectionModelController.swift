@@ -13,7 +13,13 @@ class FileSelectionModelController {
     private let fileNames = (0...10).map(String.init)
     private let fileExtension = "txt"
 
-    func loadFiles(completion: ((Result<[FigureFile], Error>) -> Void)?) {
+    private let fileService: AnimationFileReaderService
 
+    init(fileService: AnimationFileReaderService) {
+        self.fileService = fileService
+    }
+
+    func loadFiles(completion: ((Result<[FigureFile], Error>) -> Void)?) {
+        fileService.fetchFiles(fileNames: fileNames, fileExtension: fileExtension, completion: completion)
     }
 }

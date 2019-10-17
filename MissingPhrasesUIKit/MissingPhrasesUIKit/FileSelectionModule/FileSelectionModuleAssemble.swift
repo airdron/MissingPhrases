@@ -10,4 +10,10 @@ import Foundation
 
 class FileSelectionModuleAssemble {
 
+    static func make() -> FileSelectionViewController {
+        let service = AnimationFileReaderService()
+        let modelController = FileSelectionModelController(fileService: service)
+        let viewController = FileSelectionViewController(modelController: modelController)
+        return viewController
+    }
 }

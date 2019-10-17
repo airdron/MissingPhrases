@@ -9,6 +9,7 @@
 import UIKit
 
 struct FigureFile {
+    let fullFileName: String
     let canvasSize: CGSize
     let rectangles: [Figure.Rectangle]
     let circles: [Figure.Circle]
