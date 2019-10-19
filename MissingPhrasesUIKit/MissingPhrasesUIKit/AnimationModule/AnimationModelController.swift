@@ -10,7 +10,7 @@ import Foundation
 
 class AnimationModelController {
 
-    private let file: FigureFile
+    private(set) var file: FigureFile
 
     init(file: FigureFile) {
         self.file = file

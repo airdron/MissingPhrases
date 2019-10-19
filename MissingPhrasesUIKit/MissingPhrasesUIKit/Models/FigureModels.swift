@@ -73,9 +73,9 @@ enum ColorType: String {
         case .black:
             return .black
         case .yellow:
-            return .yellow
+            return .systemYellow
         case .red:
-            return .red
+            return .systemRed
         case .white:
             return .white
         }
