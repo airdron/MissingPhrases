@@ -140,7 +140,7 @@ class AnimationViewController: UIViewController {
     private func startAnimation(view: UIView,
                                 animations: Figure.Animations,
                                 center: CGPoint,
-                                animationSpeed: TimeInterval = 1000) {
+                                animationSpeed: TimeInterval = 500) {
         animations.moves.enumerated().forEach { index, move in
             let time = move.time / animationSpeed
             let originX: CGFloat = center.x
@@ -154,6 +154,7 @@ class AnimationViewController: UIViewController {
             animationPosition.autoreverses = move.isCycle
             animationPosition.fillMode = .forwards
             animationPosition.isRemovedOnCompletion = false
+            animationPosition.isAdditive = true
             view.layer.add(animationPosition, forKey: "rectangle translate\(index)")
         }
 
@@ -168,20 +169,22 @@ class AnimationViewController: UIViewController {
             animationRotate.autoreverses = rotate.isCycle
             animationRotate.fillMode = .forwards
             animationRotate.isRemovedOnCompletion = false
+
             view.layer.add(animationRotate, forKey: "rectangle rotate\(index)")
         }
 
         animations.scales.enumerated().forEach { index, scale in
             let time = scale.time / animationSpeed
-            let animationRotate = CABasicAnimation(keyPath: "transform.scale")
-            animationRotate.fromValue = 0
-            animationRotate.toValue = scale.destScale
-            animationRotate.duration = time
-            animationRotate.isAdditive = true
-            animationRotate.autoreverses = scale.isCycle
-            animationRotate.fillMode = .forwards
-            animationRotate.isRemovedOnCompletion = false
-            view.layer.add(animationRotate, forKey: "rectangle scale\(index)")
+            let animationScale = CABasicAnimation(keyPath: "transform.scale")
+            animationScale.fromValue = 0
+            animationScale.toValue = scale.destScale
+            animationScale.duration = time
+            animationScale.isAdditive = true
+            animationScale.autoreverses = scale.isCycle
+            animationScale.fillMode = .forwards
+            animationScale.isRemovedOnCompletion = false
+
+            view.layer.add(animationScale, forKey: "rectangle scale\(index)")
         }
     }
 
