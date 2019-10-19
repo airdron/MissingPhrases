@@ -23,6 +23,16 @@ class ApplicationCoordinator {
     func showFileSelection(source window: UIWindow) {
         let viewController = FileSelectionModuleAssemble.make()
         let navigationController = UINavigationController(rootViewController: viewController)
+
+        viewController.onSelect = { [weak self, unowned navigationController] file in
+            self?.showAnimation(from: file, in: navigationController)
+        }
+
         window.rootViewController = navigationController
+    }
+
+    func showAnimation(from file: FigureFile, in sourceController: UINavigationController) {
+        let viewController = AnimationModuleAssemble.make(with: file)
+        sourceController.pushViewController(viewController, animated: true)
     }
 }

@@ -10,6 +10,8 @@ import UIKit
 
 class FileSelectionViewController: UIViewController {
 
+    var onSelect: ((FigureFile) -> Void)?
+
     private let modelController: FileSelectionModelController
     private lazy var tableView = UITableView()
     private lazy var activityIndicator = UIActivityIndicatorView(style: .large)
@@ -83,6 +85,6 @@ extension FileSelectionViewController: UITableViewDataSource {
 extension FileSelectionViewController: UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-
+        onSelect?(files[indexPath.row])
     }
 }
