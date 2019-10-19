@@ -27,6 +27,6 @@ class AnimationViewController: UIViewController {
     }
 
     private func setupUI() {
-        view.backgroundColor = .white
+        view.backgroundColor = .systemIndigo
     }
 }
