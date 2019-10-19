@@ -106,27 +106,27 @@ class AnimationViewController: UIViewController {
                 let destY = move.destY
                 let toValue = CGPoint(x: destX,
                                       y: destY)
-                let animationPosition = CABasicAnimation(keyPath: "position")
-                animationPosition.fromValue = NSValue(cgPoint: fromValue)
-                animationPosition.toValue = NSValue(cgPoint: toValue)
+                let animationPosition = CABasicAnimation(keyPath: "transform.translation")
+                animationPosition.fromValue = NSValue(cgPoint: CGPoint(x: 0, y: 0))
+                animationPosition.toValue = NSValue(cgPoint: CGPoint(x: destX - originX, y: destY - originY))
                 animationPosition.duration = time
                 animationPosition.autoreverses = move.isCycle
                 animationPosition.fillMode = .forwards
                 animationPosition.isRemovedOnCompletion = false
                 rectangleView.layer.add(animationPosition, forKey: "rectangle p\(index)")
-                rectangleView.frame.origin = CGPoint(x: move.destX - rectangle.width / 2,
-                                                     y: move.destY - rectangle.height / 2)
+//                rectangleView.frame.origin = CGPoint(x: move.destX - rectangle.width / 2,
+//                                                     y: move.destY - rectangle.height / 2)
             }
 
             rectangle.animations.rotates.enumerated().forEach { index, rotate in
                 let time = rotate.time / 1000
-                rectangleView.transform = .identity
+                //rectangleView.transform = .identity
                 rectangle.animations.rotates.forEach { rotate in
                     let originAngle: CGFloat = rectangle.angle * CGFloat.pi / 180
                     let angle: CGFloat = rotate.angle * CGFloat.pi / 180
                     let animationRotate = CABasicAnimation(keyPath: "transform.rotation")
                     animationRotate.fromValue = 0
-                    animationRotate.toValue = angle + originAngle
+                    animationRotate.toValue = angle// + originAngle
                     animationRotate.duration = time
                     animationRotate.isAdditive = true
                     animationRotate.autoreverses = rotate.isCycle
@@ -135,6 +135,24 @@ class AnimationViewController: UIViewController {
                     rectangleView.layer.add(animationRotate, forKey: "rectangle r\(index)")
                 }
             }
+//
+//            rectangle.animations.scales.enumerated().forEach { index, scale in
+//                let time = rotate.time / 1000
+//                rectangleView.transform = .identity
+//                rectangle.animations.rotates.forEach { rotate in
+//                    let originAngle: CGFloat = rectangle.angle * CGFloat.pi / 180
+//                    let angle: CGFloat = rotate.angle * CGFloat.pi / 180
+//                    let animationRotate = CABasicAnimation(keyPath: "transform.rotation")
+//                    animationRotate.fromValue = 0
+//                    animationRotate.toValue = angle + originAngle
+//                    animationRotate.duration = time
+//                    animationRotate.isAdditive = true
+//                    animationRotate.autoreverses = rotate.isCycle
+//                    animationRotate.fillMode = .forwards
+//                    animationRotate.isRemovedOnCompletion = false
+//                    rectangleView.layer.add(animationRotate, forKey: "rectangle r\(index)")
+//                }
+//            }
         }
     }
 }
