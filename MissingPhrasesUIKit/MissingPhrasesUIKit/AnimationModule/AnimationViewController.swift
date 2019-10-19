@@ -10,6 +10,7 @@ import UIKit
 
 class AnimationViewController: UIViewController {
 
+    private var animationsRunning = true
     private let modelController: AnimationModelController
     private var rectangleViews: [UIView] = []
     private var circleViews: [UIView] = []
@@ -28,6 +29,7 @@ class AnimationViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         setupConstraints()
+        setupGesture()
     }
 
     private func setupUI() {
@@ -47,6 +49,22 @@ class AnimationViewController: UIViewController {
         circleViews.forEach(contentView.addSubview)
 
         view.backgroundColor = .systemIndigo
+    }
+
+    private func setupGesture() {
+        let tap = UITapGestureRecognizer(target: self, action: #selector(tapHandler))
+        view.addGestureRecognizer(tap)
+    }
+
+    @objc
+    private func tapHandler() {
+        animationsRunning.toggle()
+
+        if animationsRunning {
+            resumeAnimations(layer: view.layer)
+        } else {
+            pauseAnimations(layer: view.layer)
+        }
     }
 
     private func setupConstraints() {
@@ -89,6 +107,7 @@ class AnimationViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         rectangleViews.forEach { $0.layer.removeAllAnimations() }
+        circleViews.forEach { $0.layer.removeAllAnimations() }
         initialLayout()
         DispatchQueue.main.async {
             self.startAnimations()
@@ -96,63 +115,87 @@ class AnimationViewController: UIViewController {
     }
 
     private func startAnimations() {
-        zip(rectangleViews, modelController.file.rectangles).forEach { rectangleView, rectangle in
-            rectangle.animations.moves.enumerated().forEach { index, move in
-                let time = move.time / 1000
-                let originX: CGFloat = rectangle.centerX
-                let originY: CGFloat = rectangle.centerY
-                let fromValue = CGPoint(x: originX, y: originY)
-                let destX = move.destX
-                let destY = move.destY
-                let toValue = CGPoint(x: destX,
-                                      y: destY)
-                let animationPosition = CABasicAnimation(keyPath: "transform.translation")
-                animationPosition.fromValue = NSValue(cgPoint: CGPoint(x: 0, y: 0))
-                animationPosition.toValue = NSValue(cgPoint: CGPoint(x: destX - originX, y: destY - originY))
-                animationPosition.duration = time
-                animationPosition.autoreverses = move.isCycle
-                animationPosition.fillMode = .forwards
-                animationPosition.isRemovedOnCompletion = false
-                rectangleView.layer.add(animationPosition, forKey: "rectangle p\(index)")
-//                rectangleView.frame.origin = CGPoint(x: move.destX - rectangle.width / 2,
-//                                                     y: move.destY - rectangle.height / 2)
-            }
+        startAnimationRectangles(views: rectangleViews, models: modelController.file.rectangles)
+        startAnimationCircles(views: circleViews, models: modelController.file.circles)
+    }
 
-            rectangle.animations.rotates.enumerated().forEach { index, rotate in
-                let time = rotate.time / 1000
-                //rectangleView.transform = .identity
-                rectangle.animations.rotates.forEach { rotate in
-                    let originAngle: CGFloat = rectangle.angle * CGFloat.pi / 180
-                    let angle: CGFloat = rotate.angle * CGFloat.pi / 180
-                    let animationRotate = CABasicAnimation(keyPath: "transform.rotation")
-                    animationRotate.fromValue = 0
-                    animationRotate.toValue = angle// + originAngle
-                    animationRotate.duration = time
-                    animationRotate.isAdditive = true
-                    animationRotate.autoreverses = rotate.isCycle
-                    animationRotate.fillMode = .forwards
-                    animationRotate.isRemovedOnCompletion = false
-                    rectangleView.layer.add(animationRotate, forKey: "rectangle r\(index)")
-                }
-            }
-//
-//            rectangle.animations.scales.enumerated().forEach { index, scale in
-//                let time = rotate.time / 1000
-//                rectangleView.transform = .identity
-//                rectangle.animations.rotates.forEach { rotate in
-//                    let originAngle: CGFloat = rectangle.angle * CGFloat.pi / 180
-//                    let angle: CGFloat = rotate.angle * CGFloat.pi / 180
-//                    let animationRotate = CABasicAnimation(keyPath: "transform.rotation")
-//                    animationRotate.fromValue = 0
-//                    animationRotate.toValue = angle + originAngle
-//                    animationRotate.duration = time
-//                    animationRotate.isAdditive = true
-//                    animationRotate.autoreverses = rotate.isCycle
-//                    animationRotate.fillMode = .forwards
-//                    animationRotate.isRemovedOnCompletion = false
-//                    rectangleView.layer.add(animationRotate, forKey: "rectangle r\(index)")
-//                }
-//            }
+    func startAnimationRectangles(views: [UIView], models: [Figure.Rectangle]) {
+        zip(views, models).forEach { rectangleView, rectangle in
+            self.startAnimation(view: rectangleView,
+                                animations: rectangle.animations,
+                                center: CGPoint(x: rectangle.centerX,
+                                                y: rectangle.centerY))
         }
+    }
+
+    func startAnimationCircles(views: [UIView], models: [Figure.Circle]) {
+        zip(views, models).forEach { circleView, circle in
+            self.startAnimation(view: circleView,
+                                animations: circle.animations,
+                                center: CGPoint(x: circle.centerX,
+                                                y: circle.centerY))
+        }
+    }
+
+    private func startAnimation(view: UIView,
+                                animations: Figure.Animations,
+                                center: CGPoint,
+                                animationSpeed: TimeInterval = 1000) {
+        animations.moves.enumerated().forEach { index, move in
+            let time = move.time / animationSpeed
+            let originX: CGFloat = center.x
+            let originY: CGFloat = center.y
+            let destX = move.destX
+            let destY = move.destY
+            let animationPosition = CABasicAnimation(keyPath: "transform.translation")
+            animationPosition.fromValue = NSValue(cgPoint: CGPoint(x: 0, y: 0))
+            animationPosition.toValue = NSValue(cgPoint: CGPoint(x: destX - originX, y: destY - originY))
+            animationPosition.duration = time
+            animationPosition.autoreverses = move.isCycle
+            animationPosition.fillMode = .forwards
+            animationPosition.isRemovedOnCompletion = false
+            view.layer.add(animationPosition, forKey: "rectangle translate\(index)")
+        }
+
+        animations.rotates.enumerated().forEach { index, rotate in
+            let time = rotate.time / animationSpeed
+            let angle: CGFloat = rotate.angle * CGFloat.pi / 180
+            let animationRotate = CABasicAnimation(keyPath: "transform.rotation")
+            animationRotate.fromValue = 0
+            animationRotate.toValue = angle
+            animationRotate.duration = time
+            animationRotate.isAdditive = true
+            animationRotate.autoreverses = rotate.isCycle
+            animationRotate.fillMode = .forwards
+            animationRotate.isRemovedOnCompletion = false
+            view.layer.add(animationRotate, forKey: "rectangle rotate\(index)")
+        }
+
+        animations.scales.enumerated().forEach { index, scale in
+            let time = scale.time / animationSpeed
+            let animationRotate = CABasicAnimation(keyPath: "transform.scale")
+            animationRotate.fromValue = 0
+            animationRotate.toValue = scale.destScale
+            animationRotate.duration = time
+            animationRotate.isAdditive = true
+            animationRotate.autoreverses = scale.isCycle
+            animationRotate.fillMode = .forwards
+            animationRotate.isRemovedOnCompletion = false
+            view.layer.add(animationRotate, forKey: "rectangle scale\(index)")
+        }
+    }
+
+    func pauseAnimations(layer: CALayer) {
+        let pausedTime = layer.convertTime(CACurrentMediaTime(), from: nil)
+        layer.speed = 0
+        layer.timeOffset = pausedTime
+    }
+
+    func resumeAnimations(layer: CALayer) {
+        let pausedTime = layer.timeOffset
+        layer.speed = 1
+        layer.beginTime = 0
+        let timeSincePause = layer.convertTime(CACurrentMediaTime(), from: nil) - pausedTime
+        layer.beginTime = timeSincePause
     }
 }
