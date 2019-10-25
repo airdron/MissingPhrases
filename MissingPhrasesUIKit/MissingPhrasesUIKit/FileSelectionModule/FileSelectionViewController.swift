@@ -56,10 +56,10 @@ class FileSelectionViewController: UIViewController {
         let cellType = UITableViewCell.self
         tableView.register(cellType, forCellReuseIdentifier: cellIdentifier)
         activityIndicator.hidesWhenStopped = true
+        setupConstraints()
     }
 
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
+    private func setupConstraints() {
         activityIndicator.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
         activityIndicator.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         tableView.topAnchor.constraint(equalTo: view.topAnchor).isActive = true
