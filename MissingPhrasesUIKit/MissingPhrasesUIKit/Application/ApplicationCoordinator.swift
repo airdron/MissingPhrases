@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MissingPhrasesCommon
 
 class ApplicationCoordinator {
 

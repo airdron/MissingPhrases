@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import MissingPhrasesCommon
 class AnimationModuleAssemble {
 
     static func make(with file: FigureFile) -> AnimationViewController {

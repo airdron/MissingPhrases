@@ -7,11 +7,9 @@
 //
 
 import Foundation
+import MissingPhrasesCommon
 
 class FileSelectionModelController {
-
-    private let fileNames = (0...10).map(String.init)
-    private let fileExtension = "txt"
 
     private let fileService: AnimationFileReaderService
 
@@ -20,6 +18,6 @@ class FileSelectionModelController {
     }
 
     func loadFiles(completion: ((Result<[FigureFile], Error>) -> Void)?) {
-        fileService.fetchFiles(fileNames: fileNames, fileExtension: fileExtension, completion: completion)
+        fileService.fetchFiles(completion: completion)
     }
 }

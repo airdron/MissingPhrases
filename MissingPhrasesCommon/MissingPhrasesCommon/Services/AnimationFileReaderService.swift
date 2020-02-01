@@ -9,18 +9,21 @@
 import Foundation
 import UIKit
 
-class AnimationFileReaderService {
+public class AnimationFileReaderService {
 
-    func fetchFiles(fileNames: [String],
-                    fileExtension: String,
-                    completion: ((Result<[FigureFile], Error>) -> Void)?) {
+    private let fileNames = (0...10).map(String.init)
+    private let fileExtension = "txt"
+    
+    public init() {}
+
+    public func fetchFiles(completion: ((Result<[FigureFile], Error>) -> Void)?) {
 
         DispatchQueue.global().async {
             do {
-                let files: [FigureFile] = try fileNames.map { fileName in
-                    let fileURL = Bundle.main.url(forResource: fileName, withExtension: fileExtension)
+                let files: [FigureFile] = try self.fileNames.map { fileName in
+                    let fileURL = Bundle.main.url(forResource: fileName, withExtension: self.fileExtension)
                     let fileContent = try String(contentsOf: fileURL!, encoding: String.Encoding.utf8)
-                    return self.parseFile(fullFileName: fileName + "." + fileExtension, content: fileContent)
+                    return self.parseFile(fullFileName: fileName + "." + self.fileExtension, content: fileContent)
                 }
                 DispatchQueue.main.async {
                     completion?(.success(files))
