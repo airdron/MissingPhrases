@@ -20,8 +20,9 @@ public class AnimationFileReaderService {
 
         DispatchQueue.global().async {
             do {
+                print("ХУЙ")
                 let files: [FigureFile] = try self.fileNames.map { fileName in
-                    let fileURL = Bundle.main.url(forResource: fileName, withExtension: self.fileExtension)
+                    let fileURL = Bundle(for: type(of: self)).url(forResource: fileName, withExtension: self.fileExtension)
                     let fileContent = try String(contentsOf: fileURL!, encoding: String.Encoding.utf8)
                     return self.parseFile(fullFileName: fileName + "." + self.fileExtension, content: fileContent)
                 }
